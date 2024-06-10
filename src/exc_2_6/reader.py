@@ -61,6 +61,16 @@ def read_csv_as_columns(filepath: str, column_types: list) -> DataCollection:
     return data_collection
 
 
+def read_csv_as_instances(filename: str, cls: object) -> list[object]:
+    records = []
+    with open(filename) as f:
+        rows = csv.reader(f)
+        next(rows)
+        for row in rows:
+            records.append(cls.from_row(row))
+    return records
+
+
 if __name__ == "__main__":
     from pathlib import Path
     path = Path(__file__).parent.parent.parent
