@@ -1,16 +1,19 @@
 
-from typing import Sequence, Type, Literal
+from abc import ABC, abstractmethod
+from typing import Sequence, TypeVar, Literal
 
 
-class TableFormatter:
+class TableFormatter(ABC):
+    @abstractmethod
     def headings(self, headers):
         raise NotImplementedError()
 
+    @abstractmethod
     def row(self, rowdata):
         raise NotImplementedError()
 
 
-T = Type[TableFormatter]
+T = TypeVar('T', bound=TableFormatter)
 
 
 class TextTableFormatter(TableFormatter):
@@ -56,6 +59,8 @@ def create_formatter(format: Literal["text", "csv", "html"]) -> T:
 
 
 def print_table(data: list[Sequence], attrs: list[str], formatter: T) -> None:
+    if not isinstance(formatter, TableFormatter):
+        raise TypeError(f"Expected a {TableFormatter}")
     formatter.headings(attrs)
     for record in data:
         row_data = [getattr(record, col) for col in attrs]

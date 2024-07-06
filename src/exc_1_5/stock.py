@@ -46,6 +46,20 @@ class Stock:
     def sell(self, shares):
         self._shares -= shares
 
+    def __repr__(self):
+        return f"Stock('{self.name}', {self._shares}, {self._price})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Stock):
+            return False
+        return (
+            (
+                self.name, self._shares, self._price
+            ) == (
+                other.name, other._shares, other._price
+            )
+        )
+
 
 def read_portfolio(filepath: str, data_object: object) -> list[Stock]:
     if not hasattr(data_object, "from_row"):
