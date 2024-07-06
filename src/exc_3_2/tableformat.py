@@ -3,6 +3,19 @@ from abc import ABC, abstractmethod
 from typing import Sequence, TypeVar, Literal
 
 
+class ColumnFormatMixin:
+    formats = []
+
+    def row(self, rowdata):
+        rowdata = [(fmt % d) for fmt, d in zip(self.formats, rowdata)]
+        super().row(rowdata)
+
+
+class UpperHeadersMixin:
+    def headings(self, headers: list[str]):
+        super().headings([h.upper() for h in headers])
+
+
 class TableFormatter(ABC):
     @abstractmethod
     def headings(self, headers):
@@ -46,16 +59,30 @@ class HTMLTableFormatter(TableFormatter):
         print(" ".join([self.ROW_OPEN_TAG, *row_cells, self.ROW_CLOSED_TAG]))
 
 
-def create_formatter(format: Literal["text", "csv", "html"]) -> T:
+def create_formatter(
+        format: Literal["text", "csv", "html"],
+        column_formats: list[str] | None = None,
+        upper_headers: bool = False,
+    ) -> T:
     match format:
         case "text":
-            return TextTableFormatter()
+            formatter_cls = TextTableFormatter
         case "csv":
-            return CsvTableFormatter()
+            formatter_cls = CsvTableFormatter
         case "html":
-            return HTMLTableFormatter()
+            formatter_cls = HTMLTableFormatter
         case _:
             raise ValueError("Wrong format selected")
+
+    if column_formats:
+        class formatter_cls(ColumnFormatMixin, formatter_cls):
+            formats = column_formats
+
+    if upper_headers:
+        class formatter_cls(UpperHeadersMixin, formatter_cls):
+            pass
+
+    return formatter_cls()
 
 
 def print_table(data: list[Sequence], attrs: list[str], formatter: T) -> None:
